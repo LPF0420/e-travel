@@ -1,0 +1,524 @@
+/* ============================================================
+ * 后台页级样式（13 页专属）
+ * ------------------------------------------------------------
+ * 只写「单页独有」的布局类，命名一律 `a-<page>-xxx`；
+ * 颜色 / 间距 / 圆角 / 字号全部走 tokens.css 变量，公共视觉复用 components.css。
+ * 禁止在此文件里重定义 .btn / .table / .admin-card 等公共组件类。
+ *
+ * 覆盖页面：
+ *   AdminLogin · Dashboard · MemberList · MemberDetail · FeedbackList
+ *   RegionList · RegionForm · ScenicList · ScenicForm
+ *   TravelList · TravelForm · LogList · PasswordChange
+ * ============================================================ */
+
+/* ---------- 通用：由多个后台页共用的小件 ---------- */
+
+/* 各页根容器：只做块级化与收缩保护，不引入额外留白 */
+.a-dash,
+.a-fb,
+.a-member,
+.a-member-detail,
+.a-region,
+.a-scenic,
+.a-travel,
+.a-log {
+  display: block;
+  min-width: 0;
+}
+
+/* 表单页 <form> 外壳（FormShell 外层，不产生额外留白） */
+.a-form {
+  display: block;
+}
+
+/* 表格内操作列：右对齐紧凑按钮组 */
+.a-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-1);
+}
+
+/* 危险文字按钮（删除），仅换色，形状仍由 .btn 决定 */
+.a-btn-danger.btn {
+  color: var(--c-danger-500);
+}
+
+.a-btn-danger.btn:hover:not(:disabled) {
+  background: var(--c-danger-50);
+  color: var(--c-danger-500);
+}
+
+/* 表格缩略图（封面列）：固定 56×40，避免行高被图片撑开 */
+.a-table__thumb {
+  display: block;
+  width: 56px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xs);
+  background: var(--c-bg-subtle);
+}
+
+.a-table__thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+/* 表格内的弱化文本（未评级等） */
+.a-cell-muted {
+  color: var(--c-text-muted);
+  font-size: var(--fs-admin-sm);
+}
+
+/* 分页条：表格底部右对齐 */
+.a-page-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--sp-4);
+}
+
+/* 页脚提示（列表页底部补充说明） */
+.a-page-tip {
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  line-height: var(--lh-normal);
+}
+
+.a-page-tip a {
+  color: var(--c-primary-600);
+  text-decoration: underline;
+}
+
+/* 弹窗内的错误块（3001 / 5000 等）：ConfirmDialog 的 desc 里以 span 承载 .form-alert */
+.a-dialog__error {
+  margin-top: var(--sp-2);
+}
+
+/* 表单页两栏区块（RegionForm / ScenicForm / TravelForm / PasswordChange 共用） */
+.a-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.a-form__section-title {
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--c-border);
+  font-family: var(--font-serif);
+  font-size: var(--fs-admin-base);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+/* 看点列表（ScenicForm） */
+.a-highlight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.a-highlight__empty {
+  font-size: var(--fs-admin-sm);
+  color: var(--c-text-muted);
+}
+
+.a-highlight__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.a-highlight__index {
+  flex: 0 0 20px;
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  text-align: right;
+}
+
+/* ============================================================
+ * P-12 管理员登录（深青绿底 + 居中白卡）
+ * ============================================================ */
+.a-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--sp-8) var(--sp-4);
+  background: linear-gradient(150deg, var(--c-primary-800) 0%, var(--c-primary-900) 100%);
+}
+
+.a-login__card {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-6);
+  border-radius: var(--r-lg);
+  background: var(--c-bg-surface);
+  box-shadow: var(--sh-2);
+}
+
+.a-login__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
+}
+
+.a-login__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--grad-avatar);
+  color: var(--c-text-inverse);
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.a-login__name {
+  font-size: var(--fs-admin-sm);
+  font-weight: 500;
+  color: var(--c-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.a-login__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.a-login__desc {
+  margin-top: var(--sp-1);
+  font-size: var(--fs-admin-sm);
+  color: var(--c-text-secondary);
+  line-height: var(--lh-normal);
+}
+
+.a-login__notice {
+  margin-top: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-primary-50);
+  color: var(--c-primary-700);
+  font-size: var(--fs-sm);
+}
+
+.a-login__error {
+  margin-top: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-danger-50);
+  color: var(--c-danger-500);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.a-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+.a-login__hint {
+  margin-top: var(--sp-4);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  line-height: var(--lh-normal);
+}
+
+.a-login__foot {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xs);
+}
+
+.a-login__foot a {
+  color: var(--c-primary-600);
+  text-decoration: underline;
+}
+
+/* ============================================================
+ * P-13 仪表盘
+ * ============================================================ */
+.a-dash__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+.a-dash__cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
+}
+
+.a-dash__more {
+  font-size: var(--fs-admin-sm);
+  color: var(--c-primary-600);
+}
+
+.a-dash__more:hover {
+  text-decoration: underline;
+}
+
+.a-dash__hint {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.a-dash__quick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+
+.a-dash__quick-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-bg-subtle);
+  color: inherit;
+  transition: border-color var(--tr-fast), background-color var(--tr-fast);
+}
+
+.a-dash__quick-item:hover {
+  border-color: var(--c-primary-200);
+  background: var(--c-primary-50);
+}
+
+.a-dash__quick-item:focus-visible {
+  outline: none;
+  box-shadow: var(--sh-focus);
+}
+
+.a-dash__quick-title {
+  font-size: var(--fs-admin-base);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.a-dash__quick-desc {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.a-dash__note {
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+/* ============================================================
+ * P-14 会员列表
+ * ============================================================ */
+.a-member__name {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* ============================================================
+ * P-15 会员详情
+ * ============================================================ */
+.a-member__profile {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+.a-member__avatar {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  font-size: var(--fs-lg);
+}
+
+.a-member__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.a-member__username {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.a-member__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+.a-member__meta-item dt {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.a-member__meta-item dd {
+  margin-top: 2px;
+  font-size: var(--fs-admin-base);
+  color: var(--c-text-primary);
+  word-break: break-all;
+}
+
+.a-member__favorites {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.a-member__fav-link {
+  display: inline-flex;
+  border-radius: var(--r-full);
+}
+
+.a-member__fav-link:hover .tag {
+  background: var(--c-primary-100);
+  color: var(--c-primary-700);
+}
+
+.a-member__logs-head {
+  padding: var(--sp-4) var(--sp-4) 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+.a-member__foot {
+  margin-top: var(--sp-4);
+}
+
+/* ============================================================
+ * P-16 意见建议
+ * ============================================================ */
+.a-fb__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.a-fb__item {
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-bg-surface);
+  box-shadow: var(--sh-1);
+}
+
+.a-fb__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.a-fb__who {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.a-fb__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.a-fb__dot {
+  color: var(--c-border-strong);
+}
+
+.a-fb__content {
+  margin-top: var(--sp-3);
+  font-size: var(--fs-admin-base);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.a-fb__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+.a-fb__toggle {
+  font-size: var(--fs-admin-sm);
+  color: var(--c-primary-600);
+  cursor: pointer;
+}
+
+.a-fb__toggle:hover {
+  text-decoration: underline;
+}
+
+.a-fb__done {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+/* ============================================================
+ * P-23 日志管理
+ * ============================================================ */
+.a-log .tabs {
+  margin-bottom: var(--sp-3);
+}
+
+/* ============================================================
+ * 响应式（≤1024 两列收窄，≤768 单列）
+ * ============================================================ */
+@media (max-width: 1024px) {
+  .a-dash__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .a-dash__cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .a-member__meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .a-dash__stats,
+  .a-dash__quick {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .a-member__meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .a-fb__actions {
+    justify-content: flex-start;
+  }
+
+  .a-login__card {
+    padding: var(--sp-5);
+  }
+}

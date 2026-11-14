@@ -1,0 +1,148 @@
+/**
+ * 设计令牌（DESIGN §6.1）—— 全站唯一的颜色/字号/间距来源。
+ * 硬约束：本文件里「清单内」的变量名与数值一律不得改动；
+ * 文件末尾的「扩展令牌」是本批为落地 24 个页面补充的最小集合，可增不可改已有值。
+ *
+ * 引入顺序：tokens.css → base.css → components.css
+ */
+
+:root {
+  /* ================= 主色：青绿（自然山水） ================= */
+  --c-primary-50: #F0FDFA;
+  --c-primary-100: #CCFBF1;
+  --c-primary-200: #99F6E4;
+  --c-primary-500: #14B8A6;
+  --c-primary-600: #0F766E; /* 主色 · 按钮 / 链接 / 侧边栏 */
+  --c-primary-700: #0D5F59; /* hover / active */
+  --c-primary-900: #134E4A; /* 深色文字 */
+
+  /* ================= 点缀：暖砂橙（仅收藏 / 推荐 / 待处理） ================= */
+  --c-accent-50: #FFFBEB;
+  --c-accent-100: #FEF3C7;
+  --c-accent-500: #F59E0B;
+  --c-accent-600: #D97706;
+
+  /* ================= 辅助：远山蓝（淡用：信息条图标、次要标签） ================= */
+  --c-sky-50: #F0F9FF;
+  --c-sky-500: #0EA5E9;
+
+  /* ================= 语义色 ================= */
+  --c-success-500: #16A34A;
+  --c-success-50: #F0FDF4;
+  --c-warning-500: #F59E0B;
+  --c-warning-50: #FFFBEB;
+  --c-danger-500: #DC2626;
+  --c-danger-50: #FEF2F2;
+
+  /* ================= 中性 ================= */
+  --c-bg-page: #FAFAF9; /* 米白，非纯白 */
+  --c-bg-surface: #FFFFFF;
+  --c-bg-subtle: #F5F5F4; /* 后台页面底 */
+  --c-text-primary: #1C1917;
+  --c-text-secondary: #78716C;
+  --c-text-muted: #A8A29E;
+  --c-text-inverse: #FFFFFF;
+  --c-border: #E7E5E4;
+  --c-border-strong: #D6D3D1;
+  --c-overlay: rgba(28, 25, 23, 0.45);
+
+  /* ================= 字体 ================= */
+  --font-sans: "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", system-ui, sans-serif;
+  --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Consolas, monospace;
+
+  /* ================= 字号阶梯（C 端） ================= */
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 16px;
+  --fs-md: 18px;
+  --fs-lg: 20px;
+  --fs-xl: 24px;
+  --fs-2xl: 30px;
+  --fs-3xl: 40px;
+  --fs-4xl: 48px;
+  /* 后台专用压缩阶梯 */
+  --fs-admin-base: 14px;
+  --fs-admin-sm: 13px;
+
+  /* ================= 行高 ================= */
+  --lh-tight: 1.25;
+  --lh-normal: 1.6;
+  --lh-relaxed: 1.8; /* 正文用 1.8 */
+
+  /* ================= 间距刻度（4 的倍数） ================= */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 80px;
+  --sp-10: 96px; /* 区块间距 C 端 80–96px */
+
+  /* ================= 圆角 ================= */
+  --r-sm: 8px; /* 按钮 / 输入框 */
+  --r-md: 12px; /* 小卡片 / 标签容器 */
+  --r-lg: 16px; /* 主卡片 / 图片 */
+  --r-full: 999px;
+
+  /* ================= 阴影（仅一层，极浅） ================= */
+  --sh-1: 0 1px 2px rgba(28, 25, 23, 0.04), 0 4px 12px rgba(28, 25, 23, 0.04);
+  --sh-2: 0 4px 16px rgba(28, 25, 23, 0.08); /* hover / 弹窗 */
+
+  /* ================= 布局 ================= */
+  --w-container: 1200px;
+  --w-narrow: 760px; /* 游记正文 */
+  --h-nav: 68px;
+  --w-sidebar: 216px; /* 后台侧边栏 */
+  --w-sidebar-collapsed: 64px;
+
+  /* ================= 层级 ================= */
+  --z-nav: 100;
+  --z-drawer: 150;
+  --z-modal: 200;
+  --z-toast: 300;
+
+  /* ================= 动效 ================= */
+  --tr-fast: 150ms ease;
+  --tr-base: 200ms ease;
+  --tr-slow: 300ms ease;
+
+  /* ============================================================
+   * 扩展令牌（本批补充，用途已在注释标明；上面清单内的值不得改动）
+   * ============================================================ */
+
+  /* 主色深阶：页脚底色、侧边栏 hover、图片遮罩 */
+  --c-primary-800: #0E5A54;
+
+  /* 点缀色 hover：收藏按钮 .btn--accent:hover */
+  --c-accent-700: #B45309;
+
+  /* 远山蓝浅底：信息条（InfoBar）图标底色 */
+  --c-sky-100: #E0F2FE;
+
+  /* 焦点环：键盘可达性统一用 --sh-focus，禁止各组件自造蓝色 outline */
+  --sh-focus: 0 0 0 3px rgba(20, 184, 166, 0.3);
+  --sh-focus-danger: 0 0 0 3px rgba(220, 38, 38, 0.22);
+
+  /* 后台顶栏高度（AdminLayout：侧边栏 logo 区 + 顶栏对齐） */
+  --h-topbar: 56px;
+
+  /* 弹窗宽度（DESIGN §6.2：.modal--sm 确认框 420 / .modal--md 600） */
+  --w-modal-sm: 420px;
+  --w-modal-md: 600px;
+
+  /* 极窄圆角：22px 高的小标签内部、计数器等 */
+  --r-xs: 4px;
+
+  /* 常用渐变：首屏遮罩 / 头像 / 图片失败兜底 / 骨架微光 */
+  --grad-hero: linear-gradient(180deg, rgba(19, 78, 74, 0.16) 0%, rgba(19, 78, 74, 0.62) 100%);
+  --grad-avatar: linear-gradient(135deg, var(--c-primary-500), var(--c-primary-700));
+  --grad-fallback: linear-gradient(135deg, var(--c-primary-600), var(--c-primary-800));
+  --grad-skeleton: linear-gradient(90deg, #F5F5F4 25%, #EDEBEA 37%, #F5F5F4 63%);
+
+  /* 正文最大可读宽度（游记/简介段落），与 --w-narrow 区分：这是文字列宽 */
+  --w-prose: 68ch;
+}

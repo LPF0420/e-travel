@@ -1,0 +1,9 @@
+node_modules/
+dist/
+server/data/db.json
+server/data/db.json.*
+server/data/*.corrupt-*
+*.log
+.DS_Store
+.vscode/
+.idea/

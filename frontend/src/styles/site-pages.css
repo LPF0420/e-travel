@@ -1,0 +1,1223 @@
+/* ============================================================
+ * 前台 C 端页面级样式（11 个页面专属）
+ * ------------------------------------------------------------
+ * 命名规则：.p-<page>-<block>__<element>
+ * 硬约束：
+ * 1. 只写「单个页面独有的布局/装饰类」；卡片、按钮、表单、标签、分页、
+ *    空态、骨架等公共视觉一律复用 components.css，本文件不重写。
+ * 2. 颜色/间距/字号只取 tokens.css 的设计令牌，不写字面色值（插图除外）。
+ * 3. 断点与 components.css 保持一致：≤1200 / ≤1024 / ≤768 / ≤480。
+ * ============================================================ */
+
+/* ============================================================
+ * 1. P-01 首页 p-home-*
+ * ============================================================ */
+.p-home {
+  background: var(--c-bg-page);
+}
+
+/* Hero 下方的数字条 */
+.p-home-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-5);
+  padding-block: var(--sp-6);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.p-home-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  text-align: center;
+}
+
+.p-home-stat__num {
+  font-family: var(--font-serif);
+  font-size: var(--fs-3xl);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--c-primary-700);
+}
+
+.p-home-stat__label {
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+  letter-spacing: 0.08em;
+}
+
+/* 「为什么在这里看攻略」三点价值 */
+.p-home-values {
+  margin-top: var(--sp-6);
+}
+
+.p-home-value {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-6);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-bg-surface);
+  transition: transform var(--tr-base), box-shadow var(--tr-base);
+}
+
+.p-home-value:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-1);
+}
+
+.p-home-value__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--c-primary-50);
+  color: var(--c-primary-600);
+}
+
+.p-home-value__icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.p-home-value__title {
+  margin-top: var(--sp-1);
+  font-family: var(--font-serif);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-home-value__desc {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+}
+
+/* ============================================================
+ * 2. P-02 景区列表 p-scenic-*
+ * ============================================================ */
+/* 顶部工具条：关键词 chip + 结果数 + 排序下拉 */
+.p-scenic-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  padding-block: var(--sp-3);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.p-scenic-toolbar__left,
+.p-scenic-toolbar__right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.p-scenic-keyword {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 320px;
+  padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--c-primary-50);
+  color: var(--c-primary-700);
+  font-size: var(--fs-sm);
+}
+
+.p-scenic-keyword__text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.p-scenic-keyword__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  transition: background var(--tr-fast);
+}
+
+.p-scenic-keyword__clear:hover {
+  background: var(--c-primary-100);
+}
+
+.p-scenic-keyword__clear:focus-visible {
+  outline: none;
+  box-shadow: var(--sh-focus);
+}
+
+.p-scenic-keyword__clear svg {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.p-scenic-count {
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+}
+
+.p-scenic-count strong {
+  margin-inline: 2px;
+  font-size: var(--fs-base);
+  color: var(--c-text-primary);
+}
+
+.p-scenic-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.p-scenic-sort__label {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
+.p-scenic-sort .select-wrap {
+  width: 150px;
+}
+
+.p-scenic-layout {
+  margin-top: var(--sp-5);
+}
+
+.p-scenic-pager {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--sp-7);
+}
+
+/* ============================================================
+ * 3. P-03 景区详情 p-detail-*
+ * ============================================================ */
+.p-detail-gallery {
+  margin-top: var(--sp-4);
+}
+
+/* 图集限高：主图与两张副图等高，标题区回到首屏内（≤768px 由 .gallery 的横滑规则接管） */
+.p-detail-gallery .gallery {
+  max-height: 420px;
+}
+
+/* 标题区：左侧标题与标签，右侧收藏按钮 */
+.p-detail-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  padding-block: var(--sp-6);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.p-detail-title__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.p-detail-title__name {
+  font-family: var(--font-serif);
+  font-size: var(--fs-4xl);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--c-text-primary);
+}
+
+.p-detail-title__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+}
+
+.p-detail-title__tag-link {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.p-detail-title__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--c-text-secondary);
+}
+
+.p-detail-title__stat svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--c-accent-500);
+}
+
+.p-detail-title__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.p-detail-infobar {
+  padding-block: var(--sp-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.p-detail-body {
+  padding-block: var(--sp-7);
+}
+
+.p-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-7);
+  min-width: 0;
+}
+
+.p-detail-section {
+  min-width: 0;
+}
+
+.p-detail-section__title {
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--c-border);
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+/* 景区看点：带序号的要点列表 */
+.p-detail-highlights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3) var(--sp-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.p-detail-highlight {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-bg-surface);
+}
+
+.p-detail-highlight__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-full);
+  background: var(--c-primary-50);
+  color: var(--c-primary-700);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.p-detail-highlight__text {
+  font-size: var(--fs-base);
+  color: var(--c-text-primary);
+}
+
+/* 侧栏：地区卡 + 同地区其它景区 */
+.p-detail-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  min-width: 0;
+}
+
+.p-detail-aside__block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.p-detail-aside__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-detail-aside-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.p-detail-aside-scenic {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-bg-surface);
+  text-decoration: none;
+  transition: border-color var(--tr-fast), transform var(--tr-fast);
+}
+
+.p-detail-aside-scenic:hover {
+  border-color: var(--c-primary-500);
+  transform: translateY(-1px);
+}
+
+.p-detail-aside-scenic img {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 48px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+}
+
+.p-detail-aside-scenic__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.p-detail-aside-scenic__name {
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.p-detail-aside-scenic__meta {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+/* 关联游记区块标题行 */
+.p-detail-travels__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+
+.p-detail-travels__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+/* 详情页 404 区块 */
+.p-detail-404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-block: var(--sp-9);
+  text-align: center;
+}
+
+.p-detail-404__code {
+  font-family: var(--font-serif);
+  font-size: var(--fs-4xl);
+  font-weight: 600;
+  color: var(--c-primary-200);
+  letter-spacing: 0.1em;
+}
+
+.p-detail-404__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-detail-404__desc {
+  max-width: 46ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+}
+
+.p-detail-404__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+/* ============================================================
+ * 4. P-04 游记列表 p-travel-*
+ * ============================================================ */
+.p-travel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  padding-block: var(--sp-3);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.p-travel-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.p-travel-filter__label {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
+.p-travel-filter .select-wrap {
+  width: 220px;
+}
+
+.p-travel-count {
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+}
+
+.p-travel-count strong {
+  margin-inline: 2px;
+  font-size: var(--fs-base);
+  color: var(--c-text-primary);
+}
+
+.p-travel-grid {
+  --grid-gap: var(--sp-6);
+  margin-top: var(--sp-5);
+}
+
+.p-travel-pager {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--sp-7);
+}
+
+/* ============================================================
+ * 5. P-05 游记详情 p-travel-*
+ * ============================================================ */
+.p-travel-article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  margin-top: var(--sp-5);
+}
+
+.p-travel-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.p-travel-head__scenic {
+  display: inline-flex;
+  width: fit-content;
+  text-decoration: none;
+}
+
+.p-travel-head__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-3xl);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--c-text-primary);
+}
+
+.p-travel-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+}
+
+.p-travel-meta__author {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--c-text-primary);
+}
+
+.p-travel-meta__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: var(--r-full);
+  background: var(--c-border-strong);
+}
+
+.p-travel-cover {
+  margin: 0;
+}
+
+.p-travel-cover img {
+  width: 100%;
+  max-height: 460px;
+  border-radius: var(--r-lg);
+  object-fit: cover;
+}
+
+/* 正文按 PRD 要求 760px 居中 */
+.p-travel-body {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.p-travel-empty {
+  padding: var(--sp-6);
+  border: 1px dashed var(--c-border-strong);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+.p-travel-callout {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.p-travel-related__title {
+  margin-bottom: var(--sp-5);
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+/* 游记详情 404 区块 */
+.p-travel-404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-block: var(--sp-9);
+  text-align: center;
+}
+
+.p-travel-404__code {
+  font-family: var(--font-serif);
+  font-size: var(--fs-4xl);
+  font-weight: 600;
+  color: var(--c-primary-200);
+  letter-spacing: 0.1em;
+}
+
+.p-travel-404__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-travel-404__desc {
+  max-width: 46ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+}
+
+.p-travel-404__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+/* ============================================================
+ * 6. P-06 / P-07 登录与注册 p-auth-*
+ * ============================================================ */
+.p-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.p-auth-link {
+  margin-left: var(--sp-1);
+  color: var(--c-primary-600);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-primary-200);
+}
+
+.p-auth-link:hover {
+  color: var(--c-primary-700);
+  border-bottom-color: var(--c-primary-600);
+}
+
+.p-auth-hint {
+  margin-top: var(--sp-1);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+  color: var(--c-text-muted);
+}
+
+/* ============================================================
+ * 7. P-08 我的收藏 p-fav-*
+ * ============================================================ */
+.p-fav-pager {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--sp-7);
+}
+
+/* ============================================================
+ * 8. P-09 关于我们 p-about-*
+ * ============================================================ */
+.p-about-hero {
+  margin: 0 0 var(--sp-7);
+}
+
+.p-about-hero img {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  object-fit: cover;
+}
+
+.p-about-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--sp-7);
+  align-items: start;
+}
+
+.p-about-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-width: var(--w-prose);
+}
+
+.p-about-body__title {
+  margin-top: var(--sp-2);
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-about-body p {
+  font-size: var(--fs-base);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+}
+
+.p-about-stats {
+  position: sticky;
+  top: calc(var(--h-nav) + var(--sp-5));
+}
+
+.p-about-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px dashed var(--c-border);
+}
+
+.p-about-stat__num {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-primary-700);
+}
+
+.p-about-stat__label {
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+}
+
+.p-about-stats__hint {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+  color: var(--c-text-muted);
+}
+
+.p-about-values {
+  padding-top: var(--sp-8);
+}
+
+.p-about-values__title {
+  margin-bottom: var(--sp-6);
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-about-values__grid {
+  --grid-gap: var(--sp-5);
+}
+
+.p-about-value {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-6);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-bg-surface);
+}
+
+.p-about-value__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--c-accent-50);
+  color: var(--c-accent-600);
+}
+
+.p-about-value__icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.p-about-value__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-about-value__desc {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+}
+
+.p-about-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  padding-block: var(--sp-7);
+  border-top: 1px solid var(--c-border);
+}
+
+.p-about-cta__text {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  color: var(--c-text-primary);
+}
+
+/* ============================================================
+ * 9. P-10 联系我们 p-contact-*
+ * ============================================================ */
+.p-contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+.p-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.p-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-bg-surface);
+}
+
+.p-contact-item__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  background: var(--c-primary-50);
+  color: var(--c-primary-600);
+}
+
+.p-contact-item__icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.p-contact-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.p-contact-item__label {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  letter-spacing: 0.06em;
+}
+
+.p-contact-item__value {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-text-primary);
+  word-break: break-word;
+}
+
+.p-contact-item__hint {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.p-contact-info__note {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--c-bg-subtle);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+  color: var(--c-text-secondary);
+}
+
+/* 表单卡：容器复用 .aside-card，这里只补内部节奏 */
+.p-contact-form {
+  padding: var(--sp-6);
+}
+
+.p-contact-form__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.p-contact-form__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-contact-form__desc {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  color: var(--c-text-secondary);
+}
+
+.p-contact-form__actions {
+  margin-top: var(--sp-2);
+}
+
+.p-contact-form__privacy {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+  color: var(--c-text-muted);
+}
+
+/* 提交成功态 */
+.p-contact-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-block: var(--sp-7);
+  text-align: center;
+}
+
+.p-contact-success__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  color: var(--c-success-500);
+}
+
+.p-contact-success__icon svg {
+  width: 64px;
+  height: 64px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.p-contact-success__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-contact-success__desc {
+  max-width: 40ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+}
+
+/* ============================================================
+ * 10. P-11 404 p-404-*
+ * ============================================================ */
+.p-404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-block: var(--sp-9);
+  text-align: center;
+}
+
+.p-404__art {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  color: var(--c-primary-200);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.p-404__path {
+  stroke-dasharray: 6 8;
+}
+
+.p-404__marker {
+  fill: var(--c-accent-500);
+  stroke: none;
+}
+
+.p-404__code {
+  font-family: var(--font-serif);
+  font-size: var(--fs-4xl);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--c-primary-200);
+}
+
+.p-404__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+}
+
+.p-404__desc {
+  max-width: 44ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--c-text-secondary);
+}
+
+.p-404__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+/* ============================================================
+ * 11. 四档断点（与 components.css 的 1200/1024/768/480 对齐）
+ * ============================================================ */
+
+/* 桌面 ≤1200：详情侧栏更窄，关于页统计卡收窄 */
+@media (max-width: 1200px) {
+  .p-about-columns {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: var(--sp-6);
+  }
+
+  .p-detail-title__name {
+    font-size: var(--fs-3xl);
+  }
+
+  .p-contact-layout {
+    grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  }
+}
+
+/* 平板 ≤1024：侧栏下移、两栏统一收成单列 */
+@media (max-width: 1024px) {
+  .p-about-columns,
+  .p-contact-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .p-about-stats {
+    position: static;
+  }
+
+  .p-detail-highlights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .p-scenic-toolbar,
+  .p-travel-toolbar {
+    align-items: flex-start;
+  }
+}
+
+/* 小屏 ≤768：数字条压缩、工具条纵向、标题降一档 */
+@media (max-width: 768px) {
+  .p-home-stats {
+    gap: var(--sp-3);
+    padding-block: var(--sp-5);
+  }
+
+  .p-home-stat__num {
+    font-size: var(--fs-2xl);
+  }
+
+  .p-home-value,
+  .p-about-value {
+    padding: var(--sp-5);
+  }
+
+  .p-scenic-toolbar,
+  .p-travel-toolbar {
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+
+  .p-scenic-sort,
+  .p-travel-filter {
+    width: 100%;
+  }
+
+  .p-scenic-sort .select-wrap,
+  .p-travel-filter .select-wrap {
+    width: 100%;
+  }
+
+  .p-detail-title {
+    align-items: flex-start;
+  }
+
+  .p-detail-title__name {
+    font-size: var(--fs-2xl);
+  }
+
+  .p-travel-head__title {
+    font-size: var(--fs-2xl);
+  }
+
+  .p-about-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* 手机 ≤480：数字条转纵向、按钮全宽、插图缩小 */
+@media (max-width: 480px) {
+  .p-home-stats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-3);
+  }
+
+  .p-home-stat {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: var(--sp-2);
+    text-align: left;
+  }
+
+  .p-home-stat__num {
+    font-size: var(--fs-xl);
+  }
+
+  .p-404__art {
+    max-width: 220px;
+  }
+
+  .p-404__actions,
+  .p-detail-404__actions,
+  .p-travel-404__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .p-404__actions .btn,
+  .p-detail-404__actions .btn,
+  .p-travel-404__actions .btn {
+    width: 100%;
+  }
+
+  .p-contact-form {
+    padding: var(--sp-4);
+  }
+
+  .p-detail-aside-scenic img {
+    width: 56px;
+    height: 42px;
+  }
+}
