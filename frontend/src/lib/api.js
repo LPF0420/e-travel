@@ -245,6 +245,466 @@ async function readPayload(response) {
 }
 
 /* ============================================================
+ * 静态展示模式（仅 GitHub Pages 构建开启，VITE_STATIC_MODE=1）
+ *
+ * 这里的投影函数刻意与 server/routes/shared.js、scenics.js、travels.js、regions.js、
+ * stats.js 保持同构：字段名、派生字段（含下划线别名）、排序口径、分页包、错误码都对齐，
+ * 因此页面组件无需任何改动。常规构建下整段分支会被 Vite 常量折叠移除。
+ * ============================================================ */
+
+/* global __STATIC_MODE__ */
+
+/** 编译期开关：常规构建为 false，静态构建为 true */
+const STATIC_MODE_ENABLED = typeof __STATIC_MODE__ !== 'undefined' && __STATIC_MODE__ === true;
+
+/** Vite 注入的部署 base：静态模式为 '/e-travel/'，其余为 '/' */
+const STATIC_BASE = (import.meta.env && import.meta.env.BASE_URL) || '/';
+
+/** 静态数据快照地址（带上 base，Pages 子路径才拿得到） */
+const STATIC_DATA_URL = `${STATIC_BASE.replace(/\/?$/, '/')}static-data.json`;
+
+/** 写操作 / 鉴权接口的统一提示 */
+const STATIC_DENIED_MESSAGE = '当前为静态演示站点，此功能需要后端服务，请本地运行 npm run dev 体验完整功能';
+
+/** @type {any|null} 快照缓存 */
+let staticSnapshot = null;
+/** @type {Promise<any>|null} 并发去重 */
+let staticLoading = null;
+
+/**
+ * 懒加载并缓存静态快照。
+ * @returns {Promise<any>}
+ */
+async function loadStaticData() {
+  if (staticSnapshot) return staticSnapshot;
+  if (!staticLoading) {
+    staticLoading = (async () => {
+      let response = null;
+      try {
+        response = await fetch(STATIC_DATA_URL, { cache: 'no-store' });
+      } catch (error) {
+        throw new ApiError('静态数据加载失败，请刷新页面重试', { code: ERROR_CODES.NETWORK });
+      }
+      if (!response.ok) {
+        throw new ApiError('静态数据加载失败，请刷新页面重试', {
+          code: ERROR_CODES.NETWORK,
+          status: response.status,
+        });
+      }
+      let json = null;
+      try {
+        json = await response.json();
+      } catch (error) {
+        json = null;
+      }
+      if (
+        !json ||
+        typeof json !== 'object' ||
+        !Array.isArray(json.regions) ||
+        !Array.isArray(json.scenics) ||
+        !Array.isArray(json.travels)
+      ) {
+        throw new ApiError('静态数据格式不正确，请重新生成快照', { code: ERROR_CODES.NETWORK });
+      }
+      staticSnapshot = json;
+      return json;
+    })().catch((error) => {
+      staticLoading = null;
+      throw error;
+    });
+  }
+  return staticLoading;
+}
+
+/**
+ * 给快照里的图片路径补 base（Pages 子路径部署时 '/images/x.jpg' 会指向域名根）。
+ * 只处理字符串，返回深拷贝，绝不改动缓存里的快照。
+ * @param {any} value
+ * @returns {any}
+ */
+function staticLocalizeImages(value) {
+  if (Array.isArray(value)) return value.map(staticLocalizeImages);
+  if (value && typeof value === 'object') {
+    /** @type {Record<string, any>} */
+    const out = {};
+    for (const key of Object.keys(value)) out[key] = staticLocalizeImages(value[key]);
+    return out;
+  }
+  if (typeof value === 'string' && STATIC_BASE !== '/' && value.startsWith('/images/')) {
+    return `${STATIC_BASE.replace(/\/$/, '')}${value}`;
+  }
+  return value;
+}
+
+/** @param {any} value @returns {number|null} */
+function staticParseId(value) {
+  if (typeof value === 'number') return Number.isInteger(value) && value > 0 ? value : null;
+  if (typeof value !== 'string' || value.trim() === '') return null;
+  if (!/^\d+$/.test(value.trim())) return null;
+  const parsed = Number(value.trim());
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+/**
+ * @param {any} value
+ * @param {number} fallback
+ * @param {{min?:number|null, max?:number|null}} [options]
+ * @returns {number}
+ */
+function staticToInt(value, fallback, options = {}) {
+  if (value === undefined || value === null || value === '') return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  let int = Math.trunc(parsed);
+  if (typeof options.min === 'number' && int < options.min) int = options.min;
+  if (typeof options.max === 'number' && int > options.max) int = options.max;
+  return int;
+}
+
+/** @param {any} value @param {boolean|null} [fallback] @returns {boolean|null} */
+function staticToBoolean(value, fallback = null) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const text = value.trim().toLowerCase();
+    if (text === 'true' || text === '1' || text === 'yes') return true;
+    if (text === 'false' || text === '0' || text === 'no') return false;
+  }
+  return fallback;
+}
+
+/** @param {any} value @returns {string} */
+function staticTrim(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+/** @param {string} keyword @param {...any} fields @returns {boolean} */
+function staticMatchKeyword(keyword, ...fields) {
+  const needle = staticTrim(keyword).toLowerCase();
+  if (!needle) return true;
+  return fields.some((field) => typeof field === 'string' && field.toLowerCase().includes(needle));
+}
+
+/**
+ * 与 server/utils.js 的 paginate 同构。
+ * @template T
+ * @param {T[]} list
+ * @param {number} page
+ * @param {number} pageSize
+ * @returns {{list:T[],total:number,page:number,pageSize:number,totalPages:number}}
+ */
+function staticPaginate(list, page, pageSize) {
+  const all = Array.isArray(list) ? list : [];
+  const total = all.length;
+  const size = pageSize > 0 ? pageSize : 10;
+  const safePage = page > 0 ? page : 1;
+  const skip = (safePage - 1) * size;
+  return {
+    list: all.slice(skip, skip + size),
+    total,
+    page: safePage,
+    pageSize: size,
+    totalPages: Math.max(1, Math.ceil(total / size)),
+  };
+}
+
+/** @param {{id:number,publishedAt?:string}} a @param {{id:number,publishedAt?:string}} b @returns {number} */
+function staticByPublishedAtDesc(a, b) {
+  const left = Date.parse(a.publishedAt || '') || 0;
+  const right = Date.parse(b.publishedAt || '') || 0;
+  if (right !== left) return right - left;
+  return b.id - a.id;
+}
+
+/** @param {string} field @returns {(a:any,b:any)=>number} */
+function staticByTimeDesc(field) {
+  return (a, b) => {
+    const left = Date.parse(a[field] || '') || 0;
+    const right = Date.parse(b[field] || '') || 0;
+    if (right !== left) return right - left;
+    return b.id - a.id;
+  };
+}
+
+/**
+ * 地区出参（对齐 regionView）。
+ * @param {any} region
+ * @param {any} data
+ * @returns {any}
+ */
+function staticRegionView(region, data) {
+  if (!region) return null;
+  const scenicCount = data.scenics.filter((item) => item.regionId === region.id).length;
+  const ordered = data.regions
+    .slice()
+    .sort((a, b) => (b.sortOrder || 0) - (a.sortOrder || 0) || a.id - b.id);
+  const isHomeRecommended = ordered.slice(0, 6).some((item) => item.id === region.id);
+  return staticLocalizeImages({
+    ...region,
+    scenicCount,
+    isHomeRecommended,
+    _scenicCount: scenicCount,
+    _isHomeRecommended: isHomeRecommended,
+  });
+}
+
+/**
+ * 景区精简出参（对齐 scenicBrief）。
+ * @param {any} scenic
+ * @returns {any}
+ */
+function staticScenicBrief(scenic) {
+  if (!scenic) return null;
+  return staticLocalizeImages({
+    id: scenic.id,
+    name: scenic.name,
+    regionId: scenic.regionId,
+    coverImage: scenic.coverImage,
+    level: scenic.level || '',
+    rating: typeof scenic.rating === 'number' ? scenic.rating : null,
+    ticketPrice: scenic.ticketPrice || '',
+    bestSeason: scenic.bestSeason || '',
+    isRecommended: Boolean(scenic.isRecommended),
+  });
+}
+
+/**
+ * 景区出参（对齐 scenicView；静态站无登录态，isFavorited 恒为 false）。
+ * @param {any} scenic
+ * @param {any} data
+ * @returns {any}
+ */
+function staticScenicView(scenic, data) {
+  if (!scenic) return null;
+  const region = data.regions.find((item) => item.id === scenic.regionId);
+  const regionName = region ? region.name : '';
+  const favoriteCount = Number((data.favoriteCounts || {})[String(scenic.id)] || 0);
+  const travelCount = data.travels.filter((item) => item.scenicId === scenic.id).length;
+  return staticLocalizeImages({
+    ...scenic,
+    regionName,
+    favoriteCount,
+    travelCount,
+    isFavorited: false,
+    _regionName: regionName,
+    _favoriteCount: favoriteCount,
+    _travelCount: travelCount,
+    _isFavorited: false,
+  });
+}
+
+/**
+ * 游记出参（对齐 travelView）。
+ * @param {any} travel
+ * @param {any} data
+ * @returns {any}
+ */
+function staticTravelView(travel, data) {
+  if (!travel) return null;
+  const scenic = data.scenics.find((item) => item.id === travel.scenicId);
+  const scenicName = scenic ? scenic.name : '';
+  return staticLocalizeImages({ ...travel, scenicName, _scenicName: scenicName });
+}
+
+/**
+ * 景区列表排序器（对齐 comparatorFor）。
+ * @param {string} sort
+ * @returns {(a:any,b:any)=>number}
+ */
+function staticScenicComparator(sort) {
+  if (sort === 'recommend') {
+    return (a, b) => {
+      const left = a.isRecommended ? 1 : 0;
+      const right = b.isRecommended ? 1 : 0;
+      if (right !== left) return right - left;
+      const byUpdated = staticByTimeDesc('updatedAt')(a, b);
+      return byUpdated !== 0 ? byUpdated : b.id - a.id;
+    };
+  }
+  if (sort === 'latest') {
+    return (a, b) => {
+      const byCreated = staticByTimeDesc('createdAt')(a, b);
+      return byCreated !== 0 ? byCreated : b.id - a.id;
+    };
+  }
+  if (sort === 'popular') {
+    return (a, b) => {
+      if (b._favoriteCount !== a._favoriteCount) return b._favoriteCount - a._favoriteCount;
+      return b.id - a.id;
+    };
+  }
+  return (a, b) => b.id - a.id;
+}
+
+/**
+ * 静态请求分发：返回与后端一致的 `{ code, message, data }`，错误直接抛 ApiError。
+ * @param {string} url 含 querystring 的完整相对地址
+ * @param {{method?:string, scope?:string}} [options]
+ * @returns {Promise<{code:number,message:string,data:any}>}
+ */
+async function staticRequest(url, options = {}) {
+  const { method = 'GET' } = options || {};
+  const data = await loadStaticData();
+
+  const [rawPath, search = ''] = String(url || '').split('?');
+  let pathname = rawPath.startsWith('/api') ? rawPath.slice(4) : rawPath;
+  if (!pathname.startsWith('/')) pathname = `/${pathname}`;
+  const query = new URLSearchParams(search);
+  const segments = pathname.split('/').filter(Boolean);
+
+  // 写操作，以及需要后端鉴权的接口：统一中文提示，页面已用 catch 展示 error.message
+  if (String(method).toUpperCase() !== 'GET') {
+    throw new ApiError(STATIC_DENIED_MESSAGE, { code: ERROR_CODES.SERVER, status: 0 });
+  }
+  if (
+    pathname === '/auth' ||
+    pathname.startsWith('/auth/') ||
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/favorites' ||
+    pathname.startsWith('/favorites/') ||
+    pathname === '/feedbacks' ||
+    pathname.startsWith('/feedbacks/')
+  ) {
+    throw new ApiError(STATIC_DENIED_MESSAGE, { code: ERROR_CODES.SERVER, status: 0 });
+  }
+
+  /** @type {any} */
+  let result = null;
+
+  if (pathname === '/stats/public') {
+    result = { ...data.stats };
+  } else if (segments[0] === 'regions' && segments.length === 1) {
+    const limit = staticToInt(query.get('limit'), null, { min: 1, max: 100 });
+    const list = data.regions
+      .slice()
+      .sort((a, b) => {
+        const left = Number.isFinite(a.sortOrder) ? a.sortOrder : 0;
+        const right = Number.isFinite(b.sortOrder) ? b.sortOrder : 0;
+        return right !== left ? right - left : a.id - b.id;
+      })
+      .map((item) => staticRegionView(item, data));
+    result = { list: limit === null ? list : list.slice(0, limit), total: list.length };
+  } else if (segments[0] === 'regions' && segments.length === 2) {
+    const id = staticParseId(segments[1]);
+    const region = id === null ? null : data.regions.find((item) => item.id === id);
+    if (!region) throw new ApiError('地区不存在', { code: ERROR_CODES.NOT_FOUND, status: 404 });
+    const scenics = data.scenics
+      .filter((item) => item.regionId === id)
+      .slice()
+      .sort((a, b) => b.id - a.id)
+      .map((item) => staticScenicBrief(item));
+    result = { region: staticRegionView(region, data), scenics };
+  } else if (segments[0] === 'scenics' && segments.length === 1) {
+    const page = staticToInt(query.get('page'), 1, { min: 1 });
+    const pageSize = staticToInt(query.get('pageSize'), 9, { min: 1, max: 100 });
+    const limit = staticToInt(query.get('limit'), null, { min: 1, max: 100 });
+    const keyword = staticTrim(query.get('keyword'));
+    const sort = staticTrim(query.get('sort')) || 'default';
+    if (query.has('sort') && query.get('sort') !== '' && !['default', 'recommend', 'latest', 'popular'].includes(sort)) {
+      throw new ApiError('排序方式不合法', {
+        code: ERROR_CODES.VALIDATION,
+        status: 400,
+        data: { sort: '排序方式不合法' },
+      });
+    }
+    let regionId = null;
+    if (query.has('regionId') && staticTrim(query.get('regionId')) !== '') {
+      regionId = staticParseId(query.get('regionId'));
+      if (regionId === null) {
+        throw new ApiError('地区参数不合法', {
+          code: ERROR_CODES.VALIDATION,
+          status: 400,
+          data: { regionId: '地区参数不合法' },
+        });
+      }
+    }
+    const recommendedFilter = staticToBoolean(query.get('isRecommended'), null);
+    const filtered = data.scenics.filter((scenic) => {
+      if (regionId !== null && scenic.regionId !== regionId) return false;
+      if (recommendedFilter !== null && Boolean(scenic.isRecommended) !== recommendedFilter) return false;
+      if (!keyword) return true;
+      const highlights = Array.isArray(scenic.highlights) ? scenic.highlights.join(' ') : '';
+      return staticMatchKeyword(keyword, scenic.name, scenic.description, highlights);
+    });
+    const items = filtered.map((item) => staticScenicView(item, data));
+    items.sort(staticScenicComparator(sort));
+    result = limit === null ? staticPaginate(items, page, pageSize) : staticPaginate(items, 1, limit);
+  } else if (segments[0] === 'scenics' && segments.length === 2) {
+    const id = staticParseId(segments[1]);
+    const scenic = id === null ? null : data.scenics.find((item) => item.id === id);
+    if (!scenic) throw new ApiError('景区不存在', { code: ERROR_CODES.NOT_FOUND, status: 404 });
+    const region = data.regions.find((item) => item.id === scenic.regionId);
+    result = { scenic: staticScenicView(scenic, data), region: region ? staticRegionView(region, data) : null };
+  } else if (segments[0] === 'scenics' && segments.length === 3 && segments[2] === 'travels') {
+    const id = staticParseId(segments[1]);
+    const scenic = id === null ? null : data.scenics.find((item) => item.id === id);
+    if (!scenic) throw new ApiError('景区不存在', { code: ERROR_CODES.NOT_FOUND, status: 404 });
+    const limit = staticToInt(query.get('limit'), 5, { min: 1, max: 100 });
+    const all = data.travels
+      .filter((item) => item.scenicId === id)
+      .slice()
+      .sort(staticByPublishedAtDesc)
+      .map((item) => staticTravelView(item, data));
+    result = { list: all.slice(0, limit), total: all.length };
+  } else if (segments[0] === 'travels' && segments.length === 1) {
+    const page = staticToInt(query.get('page'), 1, { min: 1 });
+    const pageSize = staticToInt(query.get('pageSize'), 6, { min: 1, max: 100 });
+    const limit = staticToInt(query.get('limit'), null, { min: 1, max: 100 });
+    let scenicId = null;
+    if (query.has('scenicId') && staticTrim(query.get('scenicId')) !== '') {
+      scenicId = staticParseId(query.get('scenicId'));
+      if (scenicId === null) {
+        throw new ApiError('景区参数不合法', {
+          code: ERROR_CODES.VALIDATION,
+          status: 400,
+          data: { scenicId: '景区参数不合法' },
+        });
+      }
+    }
+    const all = data.travels
+      .filter((item) => scenicId === null || item.scenicId === scenicId)
+      .slice()
+      .sort(staticByPublishedAtDesc)
+      .map((item) => staticTravelView(item, data));
+    result = limit === null ? staticPaginate(all, page, pageSize) : staticPaginate(all, 1, limit);
+  } else if (segments[0] === 'travels' && segments.length === 2) {
+    const id = staticParseId(segments[1]);
+    const travel = id === null ? null : data.travels.find((item) => item.id === id);
+    if (!travel) throw new ApiError('游记不存在', { code: ERROR_CODES.NOT_FOUND, status: 404 });
+    const scenic = data.scenics.find((item) => item.id === travel.scenicId);
+    const sameScenic = data.travels
+      .filter((item) => item.scenicId === travel.scenicId && item.id !== travel.id)
+      .slice()
+      .sort(staticByPublishedAtDesc);
+    /** @type {any[]} */
+    const related = sameScenic.slice(0, 3);
+    if (related.length < 3) {
+      const others = data.travels
+        .filter((item) => item.id !== travel.id && item.scenicId !== travel.scenicId)
+        .slice()
+        .sort(staticByPublishedAtDesc);
+      for (const item of others) {
+        if (related.length >= 3) break;
+        related.push(item);
+      }
+    }
+    result = {
+      travel: staticTravelView(travel, data),
+      scenic: scenic ? staticScenicBrief(scenic) : null,
+      related: related.map((item) => staticTravelView(item, data)),
+    };
+  } else {
+    throw new ApiError('当前为静态演示站点，暂未收录该内容', {
+      code: ERROR_CODES.NOT_FOUND,
+      status: 404,
+    });
+  }
+
+  return { code: 0, message: 'ok', data: result };
+}
+
+/* ============================================================
  * 核心请求
  * ============================================================ */
 
@@ -275,6 +735,13 @@ export async function request(path, options = {}) {
 
   const effectiveScope = auth && auth !== 'none' ? auth : scope;
   const url = `${resolveUrl(path)}${buildQuery(query)}`;
+
+  // 静态演示站：完全不发起网络请求，从内存快照投影出后端同构数据再走同一套解包契约
+  if (STATIC_MODE_ENABLED) {
+    const envelope = await staticRequest(url, { method, scope: effectiveScope });
+    return envelope && envelope.data !== undefined ? envelope.data : null;
+  }
+
   // null 视为「无请求体」：不设 Content-Type，避免发出字面量 'null'
   const hasBody = body !== undefined && body !== null;
   const headers = { Accept: 'application/json' };

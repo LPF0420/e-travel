@@ -10,7 +10,12 @@
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, HashRouter } from 'react-router-dom';
+
+/* global __STATIC_MODE__ */
+
+/** 静态演示站部署在 /e-travel/ 子路径且无服务端 rewrite，用 HashRouter 保证深链不 404 */
+const Router = typeof __STATIC_MODE__ !== 'undefined' && __STATIC_MODE__ === true ? HashRouter : BrowserRouter;
 
 import './styles/tokens.css';
 import './styles/base.css';
@@ -31,7 +36,7 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <BrowserRouter>
+    <Router>
       <ToastProvider>
         <MemberAuthProvider>
           <AdminAuthProvider>
@@ -39,6 +44,6 @@ createRoot(container).render(
           </AdminAuthProvider>
         </MemberAuthProvider>
       </ToastProvider>
-    </BrowserRouter>
+    </Router>
   </StrictMode>,
 );

@@ -8,6 +8,7 @@
     "dev": "node scripts/dev.mjs",
     "dev:api": "node server/index.js",
     "build": "vite build --config frontend/vite.config.js",
+    "build:pages": "node scripts/build-static.mjs && vite build --config frontend/vite.config.js",
     "start": "node server/index.js",
     "preview": "vite preview --config frontend/vite.config.js",
     "smoke": "node scripts/smoke-api.mjs"

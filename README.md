@@ -128,6 +128,27 @@ node tests/api/run.mjs        → 123 项
 - `scripts/smoke-api.mjs`：公开接口、会员注册/登录/收藏全链路（含幂等与 401）、后台登录与越权拦截、地区/景区/游记 CRUD、占用删除拦截、三类日志、改密与新密码重登、`/api` 未命中 JSON 404、非法 JSON、空表单 5 字段、超 1MB → 413。
 - `tests/api/`：按 PRD 的 F-xx 编号组织的 123 条断言（A 公开接口 37 / B 会员链路 33 / C 意见反馈 8 / D 后台链路 35 / E 并发与一致性 7），覆盖并发收藏幂等、级联删除、越权断言 `code:2004`、日志 pageSize 上限、静态资源 404 语义。运行结束会恢复 `db.json` 并删除备份。
 
+## GitHub Pages 静态演示站
+
+线上地址：<https://LPF0420.github.io/e-travel/>（仓库 `LPF0420/e-travel`，push 到 `main` 后由 GitHub Actions 自动构建部署）。
+
+**静态版是只读演示站**：GitHub Pages 只能托管静态文件、无法运行 Node 后端，因此首页、景区列表 / 详情、游记列表 / 详情、关于我们、联系我们（展示部分）均可正常浏览，但登录 / 注册 / 收藏 / 意见提交 / 后台等写操作会给出中文提示，不会真的写入数据。数据来自 `server/data/db.json` 的脱敏快照（只保留地区、景区、游记与收藏计数，不含密码哈希、会员资料、管理员与日志）。
+
+静态模式是**显式开关**，仅 Pages 构建打开，`npm run dev` 与 `npm run build && npm start` 的行为完全不变：
+
+- `scripts/build-static.mjs` → 生成 `frontend/public/static-data.json`（构建时拷入 `dist/`）；
+- `frontend/vite.config.js` 在 `VITE_STATIC_MODE=1` 时设 `base: '/e-travel/'`、注入 `__STATIC_MODE__`，并给少数硬编码 `/images/...` 补 base 前缀；
+- `frontend/src/lib/api.js` 在该模式下从快照内存投影出与后端同构的响应；`main.jsx` 改用 `HashRouter` 以避免子路径深链 404。
+
+本地复现静态构建：
+
+```bash
+VITE_STATIC_MODE=1 npm run build:pages     # Windows PowerShell: $env:VITE_STATIC_MODE=1; npm run build:pages
+# 产物在 dist/；用任意静态服务器以 /e-travel/ 为前缀托管即可预览
+```
+
+只更新快照数据（不重新构建）时执行 `node scripts/build-static.mjs`。重新部署：提交并 push 到 `main`，或在 Actions 页手动触发 `Deploy to GitHub Pages`；还需在仓库 Settings → Pages → Build and deployment 中把 Source 选为 **GitHub Actions**（首次启用由主理人完成）。
+
 ## 已知限制
 
 - **图片路径白名单**：后台表单的 `coverImage` / `gallery` 必须是 `frontend/public/images/`（构建后为 `dist/images/`）下**真实存在**的文件，否则返回 `400` + `code: 1001` + `data.coverImage` 提示。当前 9 张素材均为 **`.jpg`**（如 `/images/jiuzhaigou.jpg`），填 `.png` 会被拒——这样能避免"存进去了但前台破图"。
