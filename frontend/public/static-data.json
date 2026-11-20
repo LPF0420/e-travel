@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-20T22:27:57.267Z",
+    "generatedAt": "2026-11-20T22:33:14.597Z",
     "source": "server/data/db.json",
     "note": "公开只读快照：仅含地区 / 景区 / 游记与收藏计数，已脱敏"
   },

@@ -10,16 +10,21 @@
  * 2. 输出断言：序列化后扫描禁止的键名，并逐一比对 db 里的 passwordHash / 手机号 / 邮箱 /
  *    secret 等敏感值，一旦命中立即抛错，避免将来有人误加字段造成泄露。
  *
- * 兼容 Windows：路径一律用 path.join + fileURLToPath，不硬编码 '/'。
+ * 数据源：优先 server/data/db.json（本地开发用当前数据）；该文件被 .gitignore 忽略，
+ * CI / 全新 clone 中不存在，此时降级为动态 import server/seed.js 的 createSeedData()
+ * 生成同一份种子数据。两条路径共用后续投影与脱敏流程。
+ *
+ * 兼容 Windows：路径一律用 path.join + fileURLToPath / pathToFileURL，不硬编码 '/'。
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(SCRIPT_DIR, '..');
 const DB_FILE = path.join(PROJECT_ROOT, 'server', 'data', 'db.json');
+const SEED_FILE = path.join(PROJECT_ROOT, 'server', 'seed.js');
 const OUTPUT_FILE = path.join(PROJECT_ROOT, 'frontend', 'public', 'static-data.json');
 
 /** 地区公开字段（与 server/routes/shared.js 的 regionView 原始数据一致） */
@@ -160,19 +165,31 @@ function assertNoSecrets(snapshot, db) {
 }
 
 /**
- * 主流程。
- * @returns {void}
+ * 读取数据：db.json 优先，缺失 / 读取失败 / JSON 损坏时回落到已提交的种子脚本。
+ * @returns {Promise<{db:any, source:string}>}
  */
-function main() {
-  let raw = '';
+async function loadDbData() {
   try {
-    raw = fs.readFileSync(DB_FILE, 'utf8');
+    const raw = fs.readFileSync(DB_FILE, 'utf8');
+    return { db: JSON.parse(raw), source: 'server/data/db.json' };
   } catch (error) {
-    throw new Error(`[build-static] 读取 ${DB_FILE} 失败：${error.message}`);
+    console.warn(`[build-static] 无法使用 ${DB_FILE}（${error.message}），改用 server/seed.js 生成种子数据`);
   }
 
-  /** @type {any} */
-  const db = JSON.parse(raw);
+  const seed = await import(pathToFileURL(SEED_FILE).href);
+  if (typeof seed.createSeedData !== 'function') {
+    throw new Error(`[build-static] ${SEED_FILE} 未导出 createSeedData()`);
+  }
+  const db = await seed.createSeedData();
+  return { db, source: 'server/seed.js#createSeedData()' };
+}
+
+/**
+ * 主流程。
+ * @returns {Promise<void>}
+ */
+async function main() {
+  const { db, source } = await loadDbData();
 
   const regions = projectList(db.regions, REGION_FIELDS);
   const scenics = projectList(db.scenics, SCENIC_FIELDS);
@@ -183,7 +200,7 @@ function main() {
   const snapshot = {
     meta: {
       generatedAt: new Date().toISOString(),
-      source: 'server/data/db.json',
+      source,
       note: '公开只读快照：仅含地区 / 景区 / 游记与收藏计数，已脱敏',
     },
     stats: {
@@ -205,8 +222,11 @@ function main() {
   console.log(`[build-static] 已生成 ${OUTPUT_FILE}`);
   console.log(
     `[build-static] regions=${regions.length} scenics=${scenics.length} travels=${travels.length} ` +
-      `favoriteCounts=${Object.keys(snapshot.favoriteCounts).length}（脱敏校验通过）`,
+      `favoriteCounts=${Object.keys(snapshot.favoriteCounts).length}（脱敏校验通过，来源 ${source}）`,
   );
 }
 
-main();
+main().catch((error) => {
+  console.error(`[build-static] 构建失败：${error && error.message ? error.message : error}`);
+  process.exitCode = 1;
+});
